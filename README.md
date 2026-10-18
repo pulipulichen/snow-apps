@@ -37,6 +37,14 @@ app's built-in updater. Settings and history persist across upgrades and ordinar
 uninstall. See [Scoop release support](docs/snow-shot-releases.md#scoop) for removal,
 data locations, and maintainer setup.
 
+## Experimental Kubuntu / Linux frontend
+
+A separate Qt 6 frontend for **Kubuntu 24.04 / Plasma X11 (x86_64)** is available
+under [`snow_shot/linux/`](snow_shot/linux/README.md), with region capture, basic
+annotations, clipboard, PNG save and image pinning. It is a Linux preview, not
+full upstream feature parity. See its README for building, deb installation,
+AppImage packaging, KDE shortcuts, tests and unsupported features.
+
 ## Install Snow Shot on macOS
 
 Apple Silicon Macs running macOS 15 or later can install the stable release with:
@@ -83,3 +91,4 @@ See the [contribution guidelines](CONTRIBUTING.md) for details.
 ## Community
 
 [![LINUX DO](https://img.shields.io/badge/LINUX%20DO-Community-blue)](https://linux.do)
+

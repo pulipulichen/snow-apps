@@ -1,0 +1,25 @@
+[Desktop Entry]
+Type=Application
+Name=Snow Shot Linux Preview
+Name[zh_TW]=Snow Shot Linux 預覽版
+Name[zh_CN]=Snow Shot Linux 预览版
+Comment=Capture and annotate screenshots on Plasma X11
+Comment[zh_TW]=在 Plasma X11 擷取與標註螢幕截圖
+Exec=snow-shot-linux
+Icon=io.github.pulipulichen.SnowShotLinux
+Terminal=false
+Categories=Graphics;Utility;
+StartupNotify=true
+Actions=Capture;Tray;
+
+[Desktop Action Capture]
+Name=New screenshot
+Name[zh_TW]=擷取新截圖
+Name[zh_CN]=截取新截图
+Exec=snow-shot-linux --capture
+
+[Desktop Action Tray]
+Name=Start in system tray
+Name[zh_TW]=啟動至系統匣
+Name[zh_CN]=启动至系统托盘
+Exec=snow-shot-linux --tray
