@@ -1,0 +1,60 @@
+name: Snow Shot Linux preview
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/kubuntu-x11-preview]
+    paths: ['snow_shot/linux/**', '.github/workflows/snow-shot-linux.yml']
+  pull_request:
+    paths: ['snow_shot/linux/**', '.github/workflows/snow-shot-linux.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  kubuntu-2404:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt 6 and packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ qt6-base-dev qt6-tools-dev qt6-l10n-tools libqt6svg6 dpkg-dev file desktop-file-utils xvfb xdotool
+      - name: Configure and build the independent Linux frontend
+        run: |
+          cmake -S snow_shot/linux -B build/linux -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+          cmake --build build/linux --parallel 2
+      - name: Run Linux image and widget tests
+        run: |
+          ctest --test-dir build/linux -R '^snow-linux-(image|widget)-tests$' --output-on-failure
+          desktop-file-validate snow_shot/linux/packaging/*.desktop
+          xvfb-run -a python3 snow_shot/linux/tests/x11_smoke.py build/linux/snow-shot-linux
+      - name: Build and inspect deb
+        run: |
+          bash snow_shot/linux/packaging/package.sh build/linux deb
+          dpkg-deb --info build/linux/*.deb
+          dpkg-deb --contents build/linux/*.deb
+      - name: Download verified AppImage tooling
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p build/appimage-tools
+          gh api -H 'Accept: application/octet-stream' repos/linuxdeploy/linuxdeploy/releases/assets/602438599 > build/appimage-tools/linuxdeploy.AppImage
+          gh api -H 'Accept: application/octet-stream' repos/linuxdeploy/linuxdeploy-plugin-qt/releases/assets/525032210 > build/appimage-tools/linuxdeploy-plugin-qt.AppImage
+          echo '8aea8da0f7f7039d2a2cecb14657d752a222a5e1d3825caeef186c82f751cdd1  build/appimage-tools/linuxdeploy.AppImage' | sha256sum -c -
+          echo 'cfc1055b2b9dbc08412b579f20990b7b41a17b61beaa5847dc9477c96c9e9617  build/appimage-tools/linuxdeploy-plugin-qt.AppImage' | sha256sum -c -
+          chmod +x build/appimage-tools/*.AppImage
+      - name: Build AppImage
+        run: |
+          export LINUXDEPLOY="$PWD/build/appimage-tools/linuxdeploy.AppImage"
+          export LINUXDEPLOY_QT_PLUGIN="$PWD/build/appimage-tools/linuxdeploy-plugin-qt.AppImage"
+          bash snow_shot/linux/packaging/package.sh build/linux appimage
+          APPIMAGE_EXTRACT_AND_RUN=1 build/linux/*.AppImage --version -platform offscreen
+      - uses: actions/upload-artifact@v4
+        with:
+          name: snow-shot-linux-kubuntu-24.04-x86_64
+          path: |
+            build/linux/*.deb
+            build/linux/*.AppImage
+          retention-days: 3
